@@ -1,18 +1,20 @@
 import math
 # O vetor é considerado a mémoria e cada elemento um bloco
 class arquivo:
-    def __init__(self,indice, dados, proximo):
-        self.indice=indice
+    def __init__(self, dados):
+        self.indice=0
         self.dados=dados
-        self.proximo=proximo
+        self.indiceProximo=0
+        self.arrayindiceProximo=[]
 
 #def desfragmentacao(blocosMemoria):
 
+
 #Realiza a alocação de espaço por meio da estratégia de First-fit
-def alocacaoContinua(blocosDados, blocosMemoria):
+def alocacaoContinua(blocoArquivos, blocosMemoria):
     espacosLivres=[]
     tamanho=len(blocosMemoria)
-    tamanhoDados=len(blocosDados)
+    tamanhoDados=len(blocoArquivos)
     i=0
     while(i<tamanho):
         if(len(espacosLivres)<tamanhoDados):
@@ -23,43 +25,136 @@ def alocacaoContinua(blocosDados, blocosMemoria):
         else:
             break
         i+=1
+
+    # Se não houver espaços suficientes, retorna um erro
+    if len(espacosLivres) < tamanhoDados:
+        print("Erro: Espaco insuficiente para alocar os arquivos na alocacao continua")
+        return blocosMemoria  
+    
     #Ocupa os segmentos de espaços livres contínuos
     k=0
     for j in espacosLivres:
-        blocosMemoria[j]=blocosDados[k]
+        novoArquivo=blocoArquivos[k]
+        novoArquivo.indice=j
+        novoArquivo.indiceProximo=j+1
+        blocosMemoria[j]=novoArquivo
         k+=1
 
     return blocosMemoria
 
-#def alocacaoEncadeada():
-# def alocacaoIndexada():
+def alocacaoEncadeada(blocoArquivos, blocosMemoria):
+    espacosLivres=[]
+    tamanho=len(blocosMemoria)
+    tamanhoDados=len(blocoArquivos)
+    i=0
+    while(i<tamanho):
+        if(len(espacosLivres)<tamanhoDados):
+            if blocosMemoria[i]==0:
+                espacosLivres.append(i)
+        else:
+            break
+        i+=1
 
-#def exibirVisualmente(blocoMemoria):
+      # Se não houver espaços suficientes, retorna um erro
+    if len(espacosLivres) < tamanhoDados:
+        print("Erro: Espaco insuficiente para alocar os arquivos na alocacao encadeada")
+        return blocosMemoria  
+    #Ocupa os segmentos de espaços livres contínuos
+    k=0
+    for j in espacosLivres:
+        novoArquivo=blocoArquivos[k]
+        novoArquivo.indice=j
+        novoArquivo.indiceProximo=j+1
+        blocosMemoria[j]=novoArquivo
+        k+=1
+
+    return blocosMemoria
+
+def alocacaoIndexada(blocoArquivos, blocosMemoria):
+    espacosLivres=[]
+    tamanho=len(blocosMemoria)
+    tamanhoDados=len(blocoArquivos)
+    i=0
+    while(i<tamanho):
+        if(len(espacosLivres)<=tamanhoDados):
+            if blocosMemoria[i]==0:
+                espacosLivres.append(i)
+        else:
+            break
+        i+=1
+
+    # Se não houver espaços suficientes, retorna um erro
+    if len(espacosLivres) <= tamanhoDados:
+        print("Erro: Espaco insuficiente para alocar os arquivos na alocacao indexada")
+        return blocosMemoria  
+    
+    blocoIndice=arquivo('Tabela de Indices')
+    blocoIndice.indice=espacosLivres[0]
+    blocoIndice.arrayindiceProximo=espacosLivres
+    blocosMemoria[espacosLivres[0]]=blocoIndice
+    #Ocupa os segmentos de espaços livres contínuos
+    for j in range(len(espacosLivres)):
+        posicao=espacosLivres[j]
+        novoArquivo=blocoArquivos[j]
+        novoArquivo.indice=posicao+1
+        if(j<len(espacosLivres)-1):
+            blocosMemoria[posicao+1]=novoArquivo
+      
+
+    return blocosMemoria
+
+def exibirVisualmente(blocosMemoria):
+    for elm in blocosMemoria:
+        if(elm!=0):
+            print(f"INDICE DO ARQUIVO: {elm.indice} DADOS DO ARQUIVO: {elm.dados} PROXIMO BLOCO A SER ALOCADO: {elm.indiceProximo} BLOCO DE INDICES:{elm.arrayindiceProximo}")
+        else:
+            print(f"Dado: {elm}")
+
+def adicionarBlocosArquivos(tamanho,dados):
+    blocoArquivos=[]
+    j=tamanho
+    while(j>0):
+        blocoArquivos.append(arquivo(dados))
+        j-=1
+    return blocoArquivos
 
 def main():
+    #Definição da mémoria
     blocosMemoria=[]
-    i=5
-    while(i>0):
+    i=10
+    while(i>0): #Inicial tudo como vazio
         blocosMemoria.append(0)
         i-=1
 
-    aux=[]
+    blocoArquivos=[]
     j=3
-    index=0
-    prox=0
     while(j>0):
-        index+=1
-        aux.append(arquivo(prox,'nome', index))
+        blocoArquivos.append(arquivo('nome'))
         j-=1
-        prox+=1
 
-    novoVetor=alocacaoContinua(aux, blocosMemoria)
-    print("###Alocacao continua###")
-    for elm in novoVetor:
-        if(elm!=0):
-            print(f"O indice do aquivo eh : {elm.indice} Dados do arquivo: {elm.dados} Proximo bloco a ser alocado: {elm.proximo}")
-        else:
-            print(f"Dado: {elm}")
+
+    novoVetor=alocacaoContinua(blocoArquivos, blocosMemoria)
+    arquivoUnitario=arquivo('Paloma')
+    arquivoUnitario.indice=5
+    arquivoUnitario.indiceProximo=6
+    novoVetor[5]=arquivoUnitario
+    print("### Alocacao Continua ###")
+    exibirVisualmente(novoVetor)
+
+    print("\n### Alocacao Encadeada ###")
+    arquivos=adicionarBlocosArquivos(7,'arquivo2')
+    novoVetor2=alocacaoEncadeada(arquivos, novoVetor) 
+    exibirVisualmente(novoVetor2)
+
+    # print("\n### Alocacao Indexada ###")
+    # arquivos2=adicionarBlocosArquivos(3,'arquivo3')
+    # novoVetor3=alocacaoIndexada(arquivos2, novoVetor2) 
+    # exibirVisualmente(novoVetor3)
+
+
+
+    
+
 main()
 
 
