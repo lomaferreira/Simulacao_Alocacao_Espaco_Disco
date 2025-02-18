@@ -1,5 +1,4 @@
-import math
-# O vetor é considerado a mémoria e cada elemento um bloco
+# Estrutura para criar um arquivo
 class arquivo:
     def __init__(self, dados):
         self.indice=0
@@ -33,13 +32,15 @@ def alocacaoContinua(blocoArquivos, blocosMemoria):
     
     #Ocupa os segmentos de espaços livres contínuos
     k=0
-    for j in espacosLivres:
+    for  j in range(len(espacosLivres)):
         novoArquivo=blocoArquivos[k]
-        novoArquivo.indice=j
-        novoArquivo.indiceProximo=j+1
-        blocosMemoria[j]=novoArquivo
+        novoArquivo.indice=espacosLivres[j]
+        if(j!=len(espacosLivres)-1):
+            novoArquivo.indiceProximo=espacosLivres[j+1]
+        else:
+            novoArquivo.indiceProximo=0
+        blocosMemoria[espacosLivres[j]]=novoArquivo
         k+=1
-
     return blocosMemoria
 
 def alocacaoEncadeada(blocoArquivos, blocosMemoria):
@@ -55,17 +56,20 @@ def alocacaoEncadeada(blocoArquivos, blocosMemoria):
             break
         i+=1
 
-      # Se não houver espaços suficientes, retorna um erro
+    # Se não houver espaços suficientes, retorna um erro
     if len(espacosLivres) < tamanhoDados:
         print("Erro: Espaco insuficiente para alocar os arquivos na alocacao encadeada")
         return blocosMemoria  
     #Ocupa os segmentos de espaços livres contínuos
     k=0
-    for j in espacosLivres:
+    for j in range(len(espacosLivres)):
         novoArquivo=blocoArquivos[k]
-        novoArquivo.indice=j
-        novoArquivo.indiceProximo=j+1
-        blocosMemoria[j]=novoArquivo
+        novoArquivo.indice=espacosLivres[j]
+        if(j!=len(espacosLivres)-1):
+            novoArquivo.indiceProximo=espacosLivres[j+1]
+        else:
+            novoArquivo.indiceProximo=0
+        blocosMemoria[espacosLivres[j]]=novoArquivo
         k+=1
 
     return blocosMemoria
@@ -93,20 +97,66 @@ def alocacaoIndexada(blocoArquivos, blocosMemoria):
     blocoIndice.arrayindiceProximo=espacosLivres
     blocosMemoria[espacosLivres[0]]=blocoIndice
     #Ocupa os segmentos de espaços livres contínuos
-    for j in range(len(espacosLivres)):
-        posicao=espacosLivres[j]
-        novoArquivo=blocoArquivos[j]
-        novoArquivo.indice=posicao+1
-        if(j<len(espacosLivres)-1):
-            blocosMemoria[posicao+1]=novoArquivo
+    k=0
+    for j in range(len(espacosLivres)-1):
+        novoArquivo=blocoArquivos[k]
+        novoArquivo.indice=espacosLivres[j+1]
+        blocosMemoria[espacosLivres[j+1]]=novoArquivo
+        k+=1
       
+
+    return blocosMemoria
+
+# Função de remoção
+def removerArquivo(indice, blocosMemoria, estrategia):
+    if indice < 0 or indice >= len(blocosMemoria):
+        print("Erro: Índice inválido.")
+        return blocosMemoria
+
+    if blocosMemoria[indice] == 0:
+        print("Erro: Nenhum arquivo encontrado no índice especificado.")
+        return blocosMemoria
+
+    if estrategia == "continua":
+        # Remove arquivos alocados de forma contígua
+        arquivo = blocosMemoria[indice]
+        tamanho = 1
+        while arquivo.indiceProximo != 0 and arquivo.indiceProximo < len(blocosMemoria):
+            proximo_indice = arquivo.indiceProximo
+            blocosMemoria[proximo_indice] = 0
+            tamanho += 1
+        blocosMemoria[indice] = 0
+        print(f"Arquivo removido (alocação contígua). Blocos liberados: {tamanho}")
+
+    elif estrategia == "encadeada":
+        # Remove arquivos alocados de forma encadeada
+        atual = indice
+        while atual != -1 and atual < len(blocosMemoria):
+            proximo = blocosMemoria[atual].indiceProximo
+            blocosMemoria[atual] = 0
+            atual = proximo
+        print("Arquivo removido (alocação encadeada).")
+
+    elif estrategia == "indexada":
+        # Remove arquivos alocados de forma indexada
+        if blocosMemoria[indice].dados == 'Tabela de Indices':
+            indices = blocosMemoria[indice].arrayindiceProximo
+            for i in indices:
+                blocosMemoria[i] = 0
+            blocosMemoria[indice] = 0
+            print("Arquivo removido (alocação indexada).")
+        else:
+            print("Erro: Índice não corresponde a um bloco de índice.")
+
+    else:
+        print("Erro: Estratégia de alocação inválida.")
 
     return blocosMemoria
 
 def exibirVisualmente(blocosMemoria):
     for elm in blocosMemoria:
         if(elm!=0):
-            print(f"INDICE DO ARQUIVO: {elm.indice} DADOS DO ARQUIVO: {elm.dados} PROXIMO BLOCO A SER ALOCADO: {elm.indiceProximo} BLOCO DE INDICES:{elm.arrayindiceProximo}")
+            print(f"INDICE DO ARQUIVO: {elm.indice}| DADOS DO ARQUIVO: {elm.dados}| PROXIMO BLOCO A SER ALOCADO: {elm.indiceProximo}| BLOCO DE INDICES:{elm.arrayindiceProximo}")
         else:
             print(f"Dado: {elm}")
 
@@ -117,6 +167,7 @@ def adicionarBlocosArquivos(tamanho,dados):
         blocoArquivos.append(arquivo(dados))
         j-=1
     return blocoArquivos
+
 
 def main():
     #Definição da mémoria
@@ -132,28 +183,27 @@ def main():
         blocoArquivos.append(arquivo('nome'))
         j-=1
 
-
-    novoVetor=alocacaoContinua(blocoArquivos, blocosMemoria)
+    blocoArquivo0=adicionarBlocosArquivos(3,'arquivo0')
+    blocosMemoria=alocacaoContinua(blocoArquivo0, blocosMemoria)
     arquivoUnitario=arquivo('Paloma')
     arquivoUnitario.indice=5
-    arquivoUnitario.indiceProximo=6
-    novoVetor[5]=arquivoUnitario
-    print("### Alocacao Continua ###")
-    exibirVisualmente(novoVetor)
+    arquivoUnitario.indiceProximo=0
+    blocosMemoria[5]=arquivoUnitario
+    print("\n### Alocacao Continua ###")
+    exibirVisualmente(blocosMemoria)
 
     print("\n### Alocacao Encadeada ###")
-    arquivos=adicionarBlocosArquivos(7,'arquivo2')
-    novoVetor2=alocacaoEncadeada(arquivos, novoVetor) 
-    exibirVisualmente(novoVetor2)
+    blocoArquivos1=adicionarBlocosArquivos(3,'arquivo1')
+    blocosMemoria=alocacaoEncadeada(blocoArquivos1, blocosMemoria) 
+    exibirVisualmente(blocosMemoria)
 
-    # print("\n### Alocacao Indexada ###")
-    # arquivos2=adicionarBlocosArquivos(3,'arquivo3')
-    # novoVetor3=alocacaoIndexada(arquivos2, novoVetor2) 
-    # exibirVisualmente(novoVetor3)
+    print("\n### Alocacao Indexada ###")
+    blocoArquivos2=adicionarBlocosArquivos(2,'arquivo2')
+    blocosMemoria=alocacaoIndexada(blocoArquivos2, blocosMemoria) 
+    exibirVisualmente(blocosMemoria)
 
 
-
-    
+    removerArquivo(0,blocosMemoria,'continua')
 
 main()
 
