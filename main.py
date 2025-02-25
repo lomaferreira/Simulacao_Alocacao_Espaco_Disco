@@ -7,7 +7,7 @@ class arquivo:
         self.indiceProximo=-1
         self.arrayindiceProximo=[]
 
-#Realiza a alocação de espaço por meio da estratégia de First-fit
+#Realiza a alocação de espaço por meio da estratégia de First-fit(1º segmento diponivel é selecionado)
 def alocacaoContinua(blocoArquivos, blocosMemoria):
     espacosLivres=[]
     tamanho=len(blocosMemoria)
@@ -148,6 +148,7 @@ def removerArquivo(indice, blocosMemoria, alocacao):#Recebe o indice inicial/tab
         removerArquivoEncadeada(blocosMemoria,indice)
     else:
         print("Erro: Adicione uma estrutura válida")
+
 #Mostrar todos os elementos do bloco de mémoria
 def exibirVisualmente(blocosMemoria):
     for elm in blocosMemoria:
